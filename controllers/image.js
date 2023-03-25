@@ -1,15 +1,30 @@
-const Clarifai = require('clarifai');
+const {ClarifaiStub, grpc} = require("clarifai-nodejs-grpc");
 
-const app = new Clarifai.App({
- apiKey: API_CLARIFAI 
-});
+const stub = ClarifaiStub.grpc();
+
+const metadata = new grpc.Metadata();
+metadata.set("authorization", "Key 3b4447f9022f411a937f75ccfe7b4173");
 
 const handleApiCall = (req, res) => {
-  app.models.predict('face-detection', req.body.input)
-    .then(data => {
-      res.json(data);
-    })
-    .catch(err => res.status(400).json('unable to work with API'))
+	stub.PostModelOutputs(
+    {
+        model_id: "a403429f2ddf4b49b307e318f00e528b",
+        inputs: [{data: {image: {url: req.body.input}}}]
+    },
+    metadata,
+    (err, response) => {
+        if (err) {
+            console.log("Error: " + err);
+            return;
+        }
+
+        if (response.status.code !== 10000) {
+            console.log("Received failed status: " + response.status.description + "\n" + response.status.details);
+            return;
+        }
+	res.json(response)
+    }
+	);
 }
 
 const handleImage = (req, res, db) => {
@@ -20,7 +35,7 @@ const handleImage = (req, res, db) => {
   .then(entries => {
     res.json(entries[0].entries);
   })
-  .catch(err => res.status(400).json('unable to get entries'))
+  .catch(err => res.status(400).json('Unable to get entries'))
 }
 
 module.exports = {

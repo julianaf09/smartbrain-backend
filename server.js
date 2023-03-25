@@ -25,7 +25,13 @@ const db = knex({
 
 const app = express();
 
-app.use(cors())
+const corsOption ={
+  origin: '*',
+  credentials: true,
+  optionSuccessStatus: 200
+}
+
+app.use(cors(corsOption));
 app.use(express.json());
 
 app.get('/', (req, res)=> { res.send('Success') })
